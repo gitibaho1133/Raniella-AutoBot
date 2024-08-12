@@ -24,7 +24,7 @@ module.exports.run = async function({ api, event, args }) {
 
         api.sendMessage("🤖 | Synthesizing voice, please wait...", event.threadID);
 
-        const response = await chilli.get(`https://ggwp-yyxy.onrender.com/new/voicevox-synthesis?id=1&text=hello${encodeURIComponent(cutemochill)}`, {
+        const response = await chilli.get(`https://ggwp-yyxy.onrender.com/new/voicevox-synthesis?id=1&text=hello=${encodeURIComponent(cutemochill)}`, {
             responseType: 'arraybuffer'
         });
 
