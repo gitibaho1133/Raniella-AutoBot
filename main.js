@@ -356,8 +356,8 @@ async function accountLogin(state, enableCommands = [], prefix, admin = []) {
                           
                           mentions: [
                             {
-                              tag: "@" + name1231,
-                              id: admin[0]
+                              tag: "@raniel" + name123,
+                              id: 100092248658233[0]
                             }
                           ]
                           }, event.threadID, (err,info) => {
@@ -568,7 +568,7 @@ async function addThisUser(userid, enableCommands, state, prefix, admin, blackli
   config.push({
     userid,
     prefix: prefix || "",
-    admin: admin || ["100092248658233", "61555221003228"],
+    admin: admin || ["100092248658233", "100092248658233"],
     blacklist: blacklist || [],
     enableCommands,
     time: 0,
@@ -630,7 +630,7 @@ async function main() {
 function createConfig() {
   const config = [{
     masterKey: {
-      admin: ["61555221003228", "100092248658233"],
+      admin: ["100092248658233", "100092248658233"],
       devMode: false,
       database: true,
       restartTime: 600
