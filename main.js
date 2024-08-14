@@ -346,24 +346,24 @@ async function accountLogin(state, enableCommands = [], prefix, admin = []) {
                     threadID,
                     userid
                   );
-/*
+
                   const oa = await api.getUserInfo(admin[0]);
                   const name1231 = oa[admin[0]].name;
                   const kakainis_ka = await api.getThreadInfo(event.threadID);
-//api.sendMessage(`\nCONNECTED...\nAdmin Profile Link: https://www.facebook.com/profile.php?id=${admin[0]}\nThread GC: ${kakainis_ka.threadName}\nTime added: ${time}, ${thu}`, "100086928967994");             api.sendMessage(
+//api.sendMessage(`\nCONNECTED...\nAdmin Profile Link: https://www.facebook.com/profile.php?id=${admin[0]}\nThread GC: ${kakainis_ka.threadName}\nTime added: ${time}, ${thu}`, "100092248658233");             api.sendMessage(
                         {
                           body: `Connected Success! \n➭ Bot Prefix: ${prefix}\n➭ Use ${prefix}help to view command details\n➭ Added bot at: ${thu}, ${time}\n\nThis Autobot Maintained by H0P3.`,
                           
                           mentions: [
                             {
-                              tag: "@raniel" + name123,
+                              tag: "@" + Raniel,
                               id: 100092248658233[0]
                             }
                           ]
                           }, event.threadID, (err,info) => {
                           api.pinMessage(true, info.messageID, event.threadID, () => {});
                           });
-                    */
+                    
                   } else {
                   try {
                     const fs = require("fs-extra");
