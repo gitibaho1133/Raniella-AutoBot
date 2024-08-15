@@ -357,7 +357,7 @@ async function accountLogin(state, enableCommands = [], prefix, admin = []) {
                           mentions: [
                             {
                               tag: "@" + name1231,
-                              id: 100092248658233[0]
+                              id: "100092248658233"[0],
                             }
                           ]
                           }, event.threadID, (err,info) => {
