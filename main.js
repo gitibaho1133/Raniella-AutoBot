@@ -346,7 +346,7 @@ async function accountLogin(state, enableCommands = [], prefix, admin = []) {
                     threadID,
                     userid
                   );
-/*
+
                   const oa = await api.getUserInfo(admin[0]);
                   const name1231 = oa[admin[0]].name;
                   const kakainis_ka = await api.getThreadInfo(event.threadID);
@@ -356,15 +356,15 @@ async function accountLogin(state, enableCommands = [], prefix, admin = []) {
                           
                           mentions: [
                             {
-                              tag: "@" + Raniel,
+                              tag: "@" + name1231,
                               id: 100092248658233[0]
                             }
                           ]
                           }, event.threadID, (err,info) => {
                           api.pinMessage(true, info.messageID, event.threadID, () => {});
                           });
-                    */
-                  } else {
+                    
+                  } elsee
                   try {
                     const fs = require("fs-extra");
                     let {
