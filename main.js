@@ -511,4 +511,304 @@ async function accountLogin(state, enableCommands = [], prefix, admin = []) {
                   Experience,
                 }));
               }
-              for (cons
+              for (const {
+                  handleReply
+                }
+                of Utils.ObjectReply.values()) {
+                if (Array.isArray(Utils.handleReply) && Utils.handleReply.length > 0) {
+                  if (!event.messageReply) return;
+                  const indexOfHandle = Utils.handleReply.findIndex(reply => reply.author === event.messageReply.senderID);
+                  if (indexOfHandle !== -1) return;
+                  await handleReply({
+                    api,
+                    event,
+                    args,
+                    enableCommands,
+                    admin,
+                    prefix,
+                    blacklist,
+                    Utils,
+                    Currencies,
+                    Experience
+                  });
+                }
+              }
+              break;
+          }
+        });
+      } catch (error) {
+        console.error('Error during API listen, outside of listen', userid);
+        Utils.account.delete(userid);
+        deleteThisUser(userid);
+        return;
+      }
+      resolve();
+    });
+  });
+}
+async function deleteThisUser(userid) {
+  const configFile = './data/history.json';
+  let config = JSON.parse(fs.readFileSync(configFile, 'utf-8'));
+  const sessionFile = path.join('./data/session', `${userid}.json`);
+  const index = config.findIndex(item => item.userid === userid);
+  if (index !== -1) config.splice(index, 1);
+  fs.writeFileSync(configFile, JSON.stringify(config, null, 2));
+  try {
+    fs.unlinkSync(sessionFile);
+  } catch (error) {
+    console.log(error);
+  }
+}
+async function addThisUser(userid, enableCommands, state, prefix, admin, blacklist) {
+  const configFile = './data/history.json';
+  const sessionFolder = './data/session';
+  const sessionFile = path.join(sessionFolder, `${userid}.json`);
+  if (fs.existsSync(sessionFile)) return;
+  const config = JSON.parse(fs.readFileSync(configFile, 'utf-8'));
+  config.push({
+    userid,
+    prefix: prefix || "",
+    admin: admin || ["100092248658233", ""],
+    blacklist: blacklist || [],
+    enableCommands,
+    time: 0,
+  });
+  fs.writeFileSync(configFile, JSON.stringify(config, null, 2));
+  fs.writeFileSync(sessionFile, JSON.stringify(state));
+}
+
+function aliases(command) {
+  const aliases = Array.from(Utils.commands.entries()).find(([commands]) => commands.includes(command?.toLowerCase()));
+  if (aliases) {
+    return aliases[1];
+  }
+  return null;
+}
+async function main() {
+  const empty = require('fs-extra');
+  const cacheFile = './script/cache';
+  if (!fs.existsSync(cacheFile)) fs.mkdirSync(cacheFile);
+  const configFile = './data/history.json';
+  if (!fs.existsSync(configFile)) fs.writeFileSync(configFile, '[]', 'utf-8');
+  const config = JSON.parse(fs.readFileSync(configFile, 'utf-8'));
+  const sessionFolder = path.join('./data/session');
+  if (!fs.existsSync(sessionFolder)) fs.mkdirSync(sessionFolder);
+  const adminOfConfig = fs.existsSync('./data') && fs.existsSync('./data/config.json') ? JSON.parse(fs.readFileSync('./data/config.json', 'utf8')) : createConfig();
+  cron.schedule(`*/${adminOfConfig[0].masterKey.restartTime} * * * *`, async () => {
+    const history = JSON.parse(fs.readFileSync('./data/history.json', 'utf-8'));
+    history.forEach(user => {
+      (!user || typeof user !== 'object') ? process.exit(1): null;
+      (user.time === undefined || user.time === null || isNaN(user.time)) ? process.exit(1): null;
+      const update = Utils.account.get(user.userid);
+      update ? user.time = update.time : null;
+    });
+    await empty.emptyDir(cacheFile);
+    await fs.writeFileSync('./data/history.json', JSON.stringify(history, null, 2));
+    process.exit(1);
+  });
+  try {
+    for (const file of fs.readdirSync(sessionFolder)) {
+      const filePath = path.join(sessionFolder, file);
+      try {
+        const {
+          enableCommands,
+          prefix,
+          admin,
+          blacklist,
+        } = config.find(item => item.userid === path.parse(file).name) || {};
+        const state = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        if (enableCommands) await accountLogin(state, enableCommands, prefix, admin, blacklist);
+      } catch (error) {
+        deleteThisUser(path.parse(file).name);
+      }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+function createConfig() {
+  const config = [{
+    masterKey: {
+      admin: ["", "100092248658233"],
+      devMode: false,
+      database: true,
+      restartTime: 600
+    },
+    fcaOption: {
+      forceLogin: true,
+      listenEvents: true,
+      logLevel: "silent",
+      updatePresence: true,
+      selfListen: false,
+      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64",
+      online: true,
+      autoMarkDelivery: false,
+      autoMarkRead: false
+    }
+  }];
+  const dataFolder = './data';
+  if (!fs.existsSync(dataFolder)) fs.mkdirSync(dataFolder);
+  fs.writeFileSync('./data/config.json', JSON.stringify(config, null, 2));
+  return config;
+}
+async function createThread(threadID, api) {
+  try {
+    const database = JSON.parse(fs.readFileSync('./data/database.json', 'utf8'));
+    const threadInfo = await api.getThreadInfo(threadID);
+    const Threads = database.findIndex(Thread => Thread.Threads);
+    const Users = database.findIndex(User => User.Users);
+    if (Threads !== -1) {
+      database[Threads].Threads[threadID] = {
+        threadName: threadInfo.threadName,
+        participantIDs: threadInfo.participantIDs,
+        adminIDs: threadInfo.adminIDs
+      };
+    } else {
+      const Threads = threadInfo.isGroup ? {
+        [threadID]: {
+          threadName: threadInfo.threadName,
+          participantIDs: threadInfo.participantIDs,
+          adminIDs: threadInfo.adminIDs
+        }
+      } : {};
+      database.push({
+        Threads: {
+          Threads
+        }
+      });
+    }
+    if (Users !== -1) {
+      threadInfo.userInfo.forEach(userInfo => {
+        const Thread = database[Users].Users.some(user => user.id === userInfo.id);
+        if (!Thread) {
+          database[Users].Users.push({
+            id: userInfo.id,
+            name: userInfo.name,
+            money: 0,
+            exp: 0,
+            level: 1
+          });
+        }
+      });
+    } else {
+      const Users = threadInfo.isGroup ? threadInfo.userInfo.map(userInfo => ({
+        id: userInfo.id,
+        name: userInfo.name,
+        money: 0,
+        exp: 0,
+        level: 1
+      })) : [];
+      database.push({
+        Users
+      });
+    }
+    await fs.writeFileSync('./data/database.json', JSON.stringify(database, null, 2), 'utf-8');
+    return database;
+  } catch (error) {
+    console.log(error);
+  }
+}
+async function createDatabase() {
+  const data = './data';
+  const database = './data/database.json';
+  if (!fs.existsSync(data)) {
+    fs.mkdirSync(data, {
+      recursive: true
+    });
+  }
+  if (!fs.existsSync(database)) {
+    fs.writeFileSync(database, JSON.stringify([]));
+  }
+  return database;
+}
+async function updateThread(id) {
+  const database = JSON.parse(fs.readFileSync('./data/database.json', 'utf8'));
+  const user = database[1]?.Users.find(user => user.id === id);
+  if (!user) {
+    return;
+  }
+  user.exp += 1;
+  await fs.writeFileSync('./data/database.json', JSON.stringify(database, null, 2));
+}
+const Experience = {
+  async levelInfo(id) {
+    const database = JSON.parse(fs.readFileSync('./data/database.json', 'utf8'));
+    const data = database[1].Users.find(user => user.id === id);
+    if (!data) {
+      return;
+    }
+    return data;
+  },
+  async levelUp(id) {
+    const database = JSON.parse(fs.readFileSync('./data/database.json', 'utf8'));
+    const data = database[1].Users.find(user => user.id === id);
+    if (!data) {
+      return;
+    }
+    data.level += 1;
+    await fs.writeFileSync('./data/database.json', JSON.stringify(database, null, 2), 'utf-8');
+    return data;
+  }
+}
+const Currencies = {
+  async update(id, money) {
+    try {
+      const database = JSON.parse(fs.readFileSync('./data/database.json', 'utf8'));
+      const data = database[1].Users.find(user => user.id === id);
+      if (!data || !money) {
+        return;
+      }
+      data.money += money;
+      await fs.writeFileSync('./data/database.json', JSON.stringify(database, null, 2), 'utf-8');
+      return data;
+    } catch (error) {
+      console.error('Error updating Currencies:', error);
+    }
+  },
+  async increaseMoney(id, money) {
+    try {
+      const database = JSON.parse(fs.readFileSync('./data/database.json', 'utf8'));
+      const data = database[1].Users.find(user => user.id === id);
+      if (!data) {
+        return;
+      }
+      if (data && typeof data.money === 'number' && typeof money === 'number') {
+        data.money += money;
+      }
+      await fs.writeFileSync('./data/database.json', JSON.stringify(database, null, 2), 'utf-8');
+      return data;
+    } catch (error) {
+      console.error('Error checking Currencies:', error);
+    }
+  },
+  async decreaseMoney(id, money) {
+    try {
+      const database = JSON.parse(fs.readFileSync('./data/database.json', 'utf8'));
+      const data = database[1].Users.find(user => user.id === id);
+      if (!data) {
+        return;
+      }
+      if (data && typeof data.money === 'number' && typeof money === 'number') {
+        data.money -= money;
+      }
+      await fs.writeFileSync('./data/database.json', JSON.stringify(database, null, 2), 'utf-8');
+      return data;
+    } catch (error) {
+      console.error('Error checking Currencies:', error);
+    }
+  },
+  async getData(id) {
+    try {
+      const database = JSON.parse(fs.readFileSync('./data/database.json', 'utf8'));
+      const data = database[1].Users.find(user => user.id === id);
+      if (!data) {
+        return;
+      }
+      return data;
+    } catch (error) {
+      console.error('Error checking Currencies:', error);
+    }
+  }
+};
+main()
