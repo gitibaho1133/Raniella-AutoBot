@@ -1,11 +1,11 @@
-    module.exports.config = {
+ module.exports.config = {
     name: "confess",
     version: "2.0.0",
     hasPermssion: 0,
     credits: "Candy",
     description: "crush maybe",
     commandCategory: "love",
-    usages: `Please tag 1 person\n\nHow to use?\n${global.config.PREFIX}confess <@tag>\n\nExample:\n${global.config.PREFIX}confess @name\n`,
+    usages: `Please tag 1 person\n\nHow to use?\n${global.config.prefix}confess <@tag>\n\nExample:\n${global.config.prefix}confess @name\n`,
     cooldowns: 5,
     dependencies: {
         "axios": "",
@@ -66,7 +66,7 @@ module.exports.run = async function ({ event, api, args }) {
     const fs = global.nodemodule["fs-extra"];
     const { threadID, messageID, senderID } = event;
     var mention = Object.keys(event.mentions);
-    if (!mention[0]) return api.sendMessage(`Please tag 1 person\n\nHow to use?\n${global.config.PREFIX}confess <@tag>\n\nExample:\n${global.config.PREFIX}confess @name`, threadID, messageID);
+    if (!mention[0]) return api.sendMessage(`Please tag 1 person\n\nHow to use?\n${global.config.prefix}confess <@tag>\n\nExample:\n${global.config.prefix}confess @name`, threadID, messageID);
     else {
       let tag = event.mentions[mention].replace("@", "");
         var one = senderID, two = mention;
@@ -77,4 +77,4 @@ module.exports.run = async function ({ event, api, args }) {
         }],
      attachment: fs.createReadStream(path) }, threadID, () => fs.unlinkSync(path), messageID));
     }
-  }
+      }
