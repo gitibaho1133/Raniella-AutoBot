@@ -19,7 +19,7 @@ module.exports.config = {
 
 module.exports.run = async function ({ api, event, args }) {
     const listensearch = encodeURIComponent(args.join(" "));
-    const apiUrl = `https://hiroshi-rest-api.replit.app/search/spotify?search=${listensearch}`;
+    const apiUrl = `https://deku-rest-api.gleeze.com/spotify?q=${listensearch}`;
 
     if (!listensearch) return api.sendMessage("Please provide the name of the song you want to search.", event.threadID, event.messageID);
 
