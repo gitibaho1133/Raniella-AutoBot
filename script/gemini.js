@@ -17,7 +17,7 @@ module.exports.run = async function ({ api, event, args }) {
   if (!prompt) return api.sendMessage(`Please enter a prompt.`, event.threadID);
   api.sendTypingIndicator(event.threadID);
   try {
-    const geminiApi = `https://ggwp-yyxy.onrender.com`;
+    const geminiApi = `https://deku-rest-api.gleeze.com/api/gemini-1.5-pro?q=who%20are%20you?`;
     if (event.type == "message_reply") {
       if (event.messageReply.attachments[0]?.type == "photo") {
         url = encodeURIComponent(event.messageReply.attachments[0].url);
