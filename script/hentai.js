@@ -21,7 +21,7 @@ module.exports.run = async function ({ api, event }) {
             }
 
             try {
-                const pangit = await axios.get('https://ggwp-yyxy.onrender.com/api/randhntai');
+                const pangit = await axios.get('https://deku-rest-api.gleeze.com/api/randhntai');
                 const kamatis = pangit.data.result[0];
 
                 const pogi = kamatis.video_1;
